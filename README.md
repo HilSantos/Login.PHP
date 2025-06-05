@@ -7,12 +7,35 @@ include('conn.php');
 if($_SERVER['REQUEST_METHOD']=='POST'){
     $email = $_POST['email'];
     $senha = $_POST['senha'];
+    
+    //verifique se o email existe//
+    $sql = "SELECT COUNT(*) FROM tb_usuarios WHERE email_usuario = '$email'";
+    $result = mysqli_query($link,$sql);
+    $contador = mysqli_fetch_array($result);
+    
+    if($contador[0] == 0){
+        //email não existe//
+        header('Location: login.php?msg=Usuario e/ou senha invalidos!');
+        exit();
+    }
+
+    else{
+        //email existente//
+        $sql = "SELECT tempero_usuario FROM tb_usuarios WHERE email_usuario = '$email'";
+        $result = mysqli_query($link,$sql);
+        $tbl = mysqli_fetch_array($result);
+        $tempero = $tbl[0];
+    }
+
+    $senha = md5($senha . $tempero);
+
     $sql = "SELECT COUNT(*) FROM tb_usuarios WHERE email_usuario = '$email'
     AND senha_usuario = '$senha'";
     $result = mysqli_query($link,$sql);
     $count = mysqli_fetch_array($result);
     if($count[0] == 1){
         //email e senha corretos//
+        
         $sql = "SELECT id_usuario, apelido_usuario, nivel_usuario
         FROM tb_usuarios WHERE email_usuario = '$email' AND senha_usuario = '$senha'";
         echo$sql;
@@ -58,5 +81,13 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
         <br><br>
         <input type="submit" value="Entrar">
     </form>
+    <?php
+    if(isset($_GET['msg']) && $_GET['msg'] == 'Usuario e/ou senha invalidos!'){
+        ?>
+    <br>
+    <a href="recuperasenha.php">Redefinir Senha</a>
+    <?php
+    }
+    ?>
 </body>
 </html>
